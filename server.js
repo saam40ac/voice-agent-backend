@@ -9,12 +9,12 @@ const PORT = process.env.PORT || 3000;
 // Middleware
 app.use(cors());
 app.use(express.json());
-app.use(express.static('public'));
+app.use(express.static('public')); // Serve i file HTML dal folder 'public'
 
 // Endpoint API per Claude
 app.post('/api/chat', async (req, res) => {
     try {
-        const { messages, system } = req.body;
+        const { messages } = req.body;
 
         // Validazione input
         if (!messages || !Array.isArray(messages)) {
@@ -22,6 +22,10 @@ app.post('/api/chat', async (req, res) => {
                 error: 'Messages array is required' 
             });
         }
+
+        // ⚙️ PERSONALITÀ DELL'AGENTE - MODIFICABILE SOLO QUI
+        // Modifica questa stringa per cambiare il comportamento dell'assistente
+        const SYSTEM_PROMPT = 'Sei un assistente vocale educativo amichevole e professionale. Rispondi in modo MOLTO conciso e diretto, massimo 2-3 frasi brevi per risposta. Vai dritto al punto senza giri di parole.';
 
         // Chiamata API Anthropic
         const response = await fetch('https://api.anthropic.com/v1/messages', {
@@ -34,7 +38,7 @@ app.post('/api/chat', async (req, res) => {
             body: JSON.stringify({
                 model: 'claude-3-5-haiku-20241022',
                 max_tokens: 500,
-                system: system || 'Sei un assistente vocale amichevole e disponibile.',
+                system: SYSTEM_PROMPT,
                 messages: messages
             })
         });
