@@ -33,7 +33,7 @@ app.post('/api/chat', async (req, res) => {
             },
             body: JSON.stringify({
                 model: 'claude-3-5-haiku-20241022',
-                max_tokens: 1000,
+                max_tokens: 500,
                 system: system || 'Sei un assistente vocale amichevole e disponibile.',
                 messages: messages
             })
