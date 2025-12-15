@@ -32,7 +32,7 @@ app.post('/api/chat', async (req, res) => {
                 'anthropic-version': '2023-06-01'
             },
             body: JSON.stringify({
-                model: 'claude-haiku-4-20241022',
+                model: 'claude-3-5-haiku-20241022',
                 max_tokens: 1000,
                 system: system || 'Sei un assistente vocale amichevole e disponibile.',
                 messages: messages
