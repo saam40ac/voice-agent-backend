@@ -250,9 +250,61 @@
                 <div class="chat-header">
                     <div class="chat-title">Assistente Vocale</div>
                     <div class="chat-controls">
+                        <button class="chat-btn" id="voice-settings-btn" onclick="toggleVoiceSettings()" title="Impostazioni voce">⚙️</button>
                         <button class="chat-btn" onclick="clearChat()" title="Cancella chat">🗑️</button>
                     </div>
                 </div>
+
+                <!-- Voice Settings Panel -->
+                <div id="voice-settings-panel" class="hidden" style="padding: 20px; background: #f9fafb; border-bottom: 1px solid #e5e7eb;">
+                    <h4 style="margin-bottom: 16px; font-size: 14px; font-weight: 600; color: #374151;">Impostazioni Voce</h4>
+                    
+                    <div class="form-group" style="margin-bottom: 12px;">
+                        <label class="label" style="font-size: 12px;">Lingua e Voce</label>
+                        <select id="voice-lang" class="input" style="font-size: 13px; padding: 8px;">
+                            <option value="it-IT">🇮🇹 Italiano</option>
+                            <option value="en-GB">🇬🇧 Inglese Britannico (Sarah)</option>
+                            <option value="en-US">🇺🇸 Inglese Americano (Jasper)</option>
+                            <option value="es-ES">🇪🇸 Spagnolo</option>
+                            <option value="fr-FR">🇫🇷 Francese</option>
+                            <option value="de-DE">🇩🇪 Tedesco</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 12px;">
+                        <label class="label" style="font-size: 12px;">Velocità: <span id="speed-display">1.0</span>x</label>
+                        <input type="range" id="voice-speed" min="0.5" max="2" step="0.1" value="1" 
+                               style="width: 100%;" oninput="updateSpeedDisplay(this.value)">
+                        <div style="display: flex; justify-content: space-between; font-size: 11px; color: #6b7280; margin-top: 4px;">
+                            <span>Lenta</span>
+                            <span>Normale</span>
+                            <span>Veloce</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 12px;">
+                        <label class="label" style="font-size: 12px;">Tono: <span id="pitch-display">1.0</span></label>
+                        <input type="range" id="voice-pitch" min="0.5" max="2" step="0.1" value="1" 
+                               style="width: 100%;" oninput="updatePitchDisplay(this.value)">
+                        <div style="display: flex; justify-content: space-between; font-size: 11px; color: #6b7280; margin-top: 4px;">
+                            <span>Grave</span>
+                            <span>Normale</span>
+                            <span>Acuto</span>
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom: 12px;">
+                        <label style="display: flex; align-items: center; gap: 8px; font-size: 13px;">
+                            <input type="checkbox" id="auto-speak-check" checked onchange="saveVoiceSettings()">
+                            <span>Rispondi automaticamente con la voce</span>
+                        </label>
+                    </div>
+
+                    <button class="btn btn-primary" onclick="testVoice()" style="width: 100%; padding: 8px; font-size: 13px;">
+                        🔊 Testa Voce
+                    </button>
+                </div>
+
                 <div class="messages-area" id="messages">
                     <div class="empty-chat">
                         <div style="font-size: 48px; margin-bottom: 16px;">🎤</div>
@@ -435,6 +487,12 @@
         let synth = window.speechSynthesis;
         let isListening = false;
         let isSpeaking = false;
+        let voiceSettings = {
+            lang: 'it-IT',
+            speed: 1.0,
+            pitch: 1.0,
+            autoSpeak: true
+        };
 
         // ============================================
         // INIZIALIZZAZIONE
@@ -448,6 +506,13 @@
                 showScreen('auth');
             }
 
+            // Load voice settings
+            const savedVoiceSettings = localStorage.getItem('voiceSettings');
+            if (savedVoiceSettings) {
+                voiceSettings = JSON.parse(savedVoiceSettings);
+                updateVoiceSettingsUI();
+            }
+
             // Setup event listeners
             document.getElementById('login-form').addEventListener('submit', handleLogin);
             document.getElementById('register-form').addEventListener('submit', handleRegister);
@@ -456,6 +521,11 @@
             });
             document.getElementById('settings-form').addEventListener('submit', handleSettingsSave);
             document.getElementById('user-form').addEventListener('submit', handleUserSave);
+            
+            // Voice settings listeners
+            document.getElementById('voice-lang').addEventListener('change', saveVoiceSettings);
+            document.getElementById('voice-speed').addEventListener('change', saveVoiceSettings);
+            document.getElementById('voice-pitch').addEventListener('change', saveVoiceSettings);
 
             // Init speech recognition
             initSpeechRecognition();
@@ -642,6 +712,59 @@
             }
         }
 
+        // ============================================
+        // VOICE SETTINGS FUNCTIONS
+        // ============================================
+        function toggleVoiceSettings() {
+            const panel = document.getElementById('voice-settings-panel');
+            panel.classList.toggle('hidden');
+        }
+
+        function updateVoiceSettingsUI() {
+            document.getElementById('voice-lang').value = voiceSettings.lang;
+            document.getElementById('voice-speed').value = voiceSettings.speed;
+            document.getElementById('voice-pitch').value = voiceSettings.pitch;
+            document.getElementById('auto-speak-check').checked = voiceSettings.autoSpeak;
+            document.getElementById('speed-display').textContent = voiceSettings.speed;
+            document.getElementById('pitch-display').textContent = voiceSettings.pitch;
+        }
+
+        function updateSpeedDisplay(value) {
+            document.getElementById('speed-display').textContent = value;
+        }
+
+        function updatePitchDisplay(value) {
+            document.getElementById('pitch-display').textContent = value;
+        }
+
+        function saveVoiceSettings() {
+            voiceSettings.lang = document.getElementById('voice-lang').value;
+            voiceSettings.speed = parseFloat(document.getElementById('voice-speed').value);
+            voiceSettings.pitch = parseFloat(document.getElementById('voice-pitch').value);
+            voiceSettings.autoSpeak = document.getElementById('auto-speak-check').checked;
+            
+            localStorage.setItem('voiceSettings', JSON.stringify(voiceSettings));
+            
+            // Update recognition language
+            if (recognition) {
+                recognition.lang = voiceSettings.lang;
+            }
+        }
+
+        function testVoice() {
+            const testMessages = {
+                'it-IT': 'Ciao! Sono la voce italiana. Come ti sembro?',
+                'en-GB': 'Hello! I am Sarah, speaking British English. How do I sound?',
+                'en-US': 'Hello! I am Jasper, speaking American English. How do I sound?',
+                'es-ES': '¡Hola! Soy la voz en español. ¿Cómo sueno?',
+                'fr-FR': 'Bonjour! Je suis la voix française. Comment je sonne?',
+                'de-DE': 'Hallo! Ich bin die deutsche Stimme. Wie klinge ich?'
+            };
+            
+            const message = testMessages[voiceSettings.lang] || testMessages['it-IT'];
+            speak(message);
+        }
+
         function addMessage(role, content) {
             messages.push({ role, content });
             renderMessages();
@@ -681,7 +804,7 @@
                 recognition = new SpeechRecognition();
                 recognition.continuous = false;
                 recognition.interimResults = false;
-                recognition.lang = 'it-IT';
+                recognition.lang = voiceSettings.lang;
 
                 recognition.onresult = (event) => {
                     const text = event.results[0][0].transcript;
@@ -708,6 +831,7 @@
             if (isListening) {
                 recognition.stop();
             } else {
+                recognition.lang = voiceSettings.lang;
                 recognition.start();
                 isListening = true;
                 document.getElementById('mic-btn').classList.add('active');
@@ -722,11 +846,18 @@
         }
 
         function speak(text) {
+            if (!voiceSettings.autoSpeak) return;
+            
             synth.cancel();
             const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = 'it-IT';
-            utterance.rate = 1;
-            utterance.pitch = 1;
+            utterance.lang = voiceSettings.lang;
+            utterance.rate = voiceSettings.speed;
+            utterance.pitch = voiceSettings.pitch;
+
+            // Try to find a specific voice for the language
+            const voices = synth.getVoices();
+            const voice = voices.find(v => v.lang.startsWith(voiceSettings.lang.split('-')[0]));
+            if (voice) utterance.voice = voice;
 
             utterance.onstart = () => {
                 isSpeaking = true;
