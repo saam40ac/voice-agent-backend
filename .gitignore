@@ -3,7 +3,7 @@ node_modules/
 
 # File di configurazione sensibili
 .env
-
+*.db
 # Log
 npm-debug.log*
 yarn-debug.log*
