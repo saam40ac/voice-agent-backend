@@ -1,0 +1,1062 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice Agent AI</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        /* Common Styles */
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .card { background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        .btn {
+            padding: 12px 24px; border: none; border-radius: 8px; cursor: pointer;
+            font-weight: 600; font-size: 14px; transition: all 0.3s;
+        }
+        .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4); }
+        .btn-secondary { background: #f3f4f6; color: #374151; }
+        .btn-secondary:hover { background: #e5e7eb; }
+        .btn-danger { background: #ef4444; color: white; }
+        .btn-danger:hover { background: #dc2626; }
+        .input {
+            width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 8px;
+            font-size: 14px; font-family: inherit;
+        }
+        .input:focus { outline: none; border-color: #667eea; }
+        .label { display: block; font-weight: 600; margin-bottom: 8px; color: #374151; font-size: 14px; }
+        .form-group { margin-bottom: 20px; }
+        .alert {
+            padding: 12px; border-radius: 8px; margin-bottom: 16px; font-size: 14px;
+        }
+        .alert-error { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+        .alert-success { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
+        .alert-info { background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; }
+        .hidden { display: none !important; }
+
+        /* Login/Register Page */
+        .auth-container {
+            min-height: 100vh; display: flex; align-items: center; justify-content: center;
+        }
+        .auth-card { max-width: 400px; width: 100%; }
+        .auth-title { 
+            text-align: center; font-size: 28px; font-weight: 700; 
+            margin-bottom: 8px; color: #1f2937;
+        }
+        .auth-subtitle { text-align: center; color: #6b7280; margin-bottom: 24px; }
+        .auth-toggle {
+            text-align: center; margin-top: 16px; color: #6b7280; font-size: 14px;
+        }
+        .auth-toggle a { color: #667eea; text-decoration: none; font-weight: 600; }
+        .auth-toggle a:hover { text-decoration: underline; }
+
+        /* Student Dashboard */
+        .dashboard-header {
+            background: white; border-radius: 16px; padding: 24px; margin-bottom: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        .user-info { display: flex; justify-content: space-between; align-items: center; }
+        .user-name { font-size: 24px; font-weight: 700; color: #1f2937; }
+        .user-email { color: #6b7280; font-size: 14px; margin-top: 4px; }
+        .quota-display {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px; margin: 20px 0;
+        }
+        .quota-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white; padding: 20px; border-radius: 12px;
+        }
+        .quota-label { font-size: 12px; opacity: 0.9; margin-bottom: 4px; }
+        .quota-value { font-size: 32px; font-weight: 700; }
+        .quota-unit { font-size: 14px; opacity: 0.8; }
+
+        /* Chat Widget */
+        .chat-widget {
+            background: white; border-radius: 16px; height: 600px;
+            display: flex; flex-direction: column; box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        .chat-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white; padding: 20px; border-radius: 16px 16px 0 0;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .chat-title { font-size: 18px; font-weight: 600; }
+        .chat-controls { display: flex; gap: 8px; }
+        .chat-btn {
+            background: rgba(255,255,255,0.2); border: none; width: 32px; height: 32px;
+            border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+        }
+        .chat-btn:hover { background: rgba(255,255,255,0.3); }
+        .messages-area {
+            flex: 1; overflow-y: auto; padding: 20px; background: #f9fafb;
+        }
+        .message { margin-bottom: 16px; display: flex; }
+        .message.user { justify-content: flex-end; }
+        .message-bubble {
+            max-width: 80%; padding: 12px 16px; border-radius: 16px; font-size: 14px; line-height: 1.5;
+        }
+        .message.user .message-bubble {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white; border-bottom-right-radius: 4px;
+        }
+        .message.assistant .message-bubble {
+            background: white; color: #1f2937; border-bottom-left-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .empty-chat {
+            height: 100%; display: flex; flex-direction: column; align-items: center;
+            justify-content: center; color: #9ca3af;
+        }
+        .chat-input-area { padding: 20px; background: white; border-top: 1px solid #e5e7eb; }
+        .input-row { display: flex; gap: 10px; margin-bottom: 12px; }
+        .text-input { flex: 1; }
+        .voice-controls { display: flex; align-items: center; justify-content: center; gap: 12px; }
+        .voice-btn {
+            width: 50px; height: 50px; border-radius: 50%; border: none;
+            background: #f3f4f6; cursor: pointer; display: flex; align-items: center; justify-content: center;
+        }
+        .voice-btn:hover { background: #e5e7eb; }
+        .voice-btn.active { background: #ef4444; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+
+        /* Admin Dashboard */
+        .admin-nav {
+            background: white; border-radius: 16px; padding: 16px; margin-bottom: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1); display: flex; gap: 8px;
+        }
+        .nav-btn {
+            padding: 12px 24px; background: #f3f4f6; border: none; border-radius: 8px;
+            cursor: pointer; font-weight: 600; transition: all 0.3s;
+        }
+        .nav-btn.active { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .stats-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px; margin-bottom: 20px;
+        }
+        .stat-card {
+            background: white; padding: 24px; border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        .stat-label { color: #6b7280; font-size: 14px; margin-bottom: 8px; }
+        .stat-value { font-size: 36px; font-weight: 700; color: #1f2937; }
+        .table-container { background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        .table { width: 100%; border-collapse: collapse; }
+        .table th { text-align: left; padding: 12px; border-bottom: 2px solid #e5e7eb; color: #6b7280; font-size: 12px; font-weight: 600; text-transform: uppercase; }
+        .table td { padding: 12px; border-bottom: 1px solid #f3f4f6; }
+        .table tr:hover { background: #f9fafb; }
+        .badge {
+            display: inline-block; padding: 4px 12px; border-radius: 12px;
+            font-size: 12px; font-weight: 600;
+        }
+        .badge-active { background: #d1fae5; color: #065f46; }
+        .badge-inactive { background: #fee2e2; color: #991b1b; }
+        .badge-admin { background: #dbeafe; color: #1e40af; }
+        .badge-student { background: #f3f4f6; color: #374151; }
+        .modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;
+        }
+        .modal.show { display: flex; }
+        .modal-content {
+            background: white; border-radius: 16px; padding: 24px;
+            max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto;
+        }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .modal-title { font-size: 20px; font-weight: 700; }
+        .close-btn { background: none; border: none; font-size: 24px; cursor: pointer; color: #6b7280; }
+    </style>
+</head>
+<body>
+    <!-- Auth Screen -->
+    <div id="auth-screen" class="auth-container">
+        <div class="auth-card card">
+            <h1 class="auth-title">Voice Agent AI</h1>
+            <p class="auth-subtitle">Sistema di Gestione Studenti</p>
+            
+            <div id="auth-alert"></div>
+
+            <!-- Login Form -->
+            <form id="login-form">
+                <div class="form-group">
+                    <label class="label">Email</label>
+                    <input type="email" class="input" id="login-email" required>
+                </div>
+                <div class="form-group">
+                    <label class="label">Password</label>
+                    <input type="password" class="input" id="login-password" required>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Accedi</button>
+                <div class="auth-toggle">
+                    Non hai un account? <a href="#" onclick="showRegister(); return false;">Registrati</a>
+                </div>
+            </form>
+
+            <!-- Register Form -->
+            <form id="register-form" class="hidden">
+                <div class="form-group">
+                    <label class="label">Nome Completo</label>
+                    <input type="text" class="input" id="register-name" required>
+                </div>
+                <div class="form-group">
+                    <label class="label">Email</label>
+                    <input type="email" class="input" id="register-email" required>
+                </div>
+                <div class="form-group">
+                    <label class="label">Password</label>
+                    <input type="password" class="input" id="register-password" required minlength="6">
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Registrati</button>
+                <div class="auth-toggle">
+                    Hai già un account? <a href="#" onclick="showLogin(); return false;">Accedi</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Student Dashboard -->
+    <div id="student-screen" class="hidden">
+        <div class="container">
+            <div class="dashboard-header">
+                <div class="user-info">
+                    <div>
+                        <div class="user-name" id="student-name"></div>
+                        <div class="user-email" id="student-email"></div>
+                    </div>
+                    <button class="btn btn-secondary" onclick="logout()">Esci</button>
+                </div>
+                <div class="quota-display">
+                    <div class="quota-card">
+                        <div class="quota-label">Minuti Oggi</div>
+                        <div><span class="quota-value" id="minutes-today">0</span><span class="quota-unit"> / <span id="daily-limit">60</span></span></div>
+                    </div>
+                    <div class="quota-card">
+                        <div class="quota-label">Minuti Questo Mese</div>
+                        <div><span class="quota-value" id="minutes-month">0</span><span class="quota-unit"> min</span></div>
+                    </div>
+                    <div class="quota-card">
+                        <div class="quota-label">Messaggi Oggi</div>
+                        <div><span class="quota-value" id="messages-today">0</span><span class="quota-unit"> msg</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chat-widget">
+                <div class="chat-header">
+                    <div class="chat-title">Assistente Vocale</div>
+                    <div class="chat-controls">
+                        <button class="chat-btn" onclick="clearChat()" title="Cancella chat">🗑️</button>
+                    </div>
+                </div>
+                <div class="messages-area" id="messages">
+                    <div class="empty-chat">
+                        <div style="font-size: 48px; margin-bottom: 16px;">🎤</div>
+                        <p>Inizia a parlare o scrivi un messaggio</p>
+                    </div>
+                </div>
+                <div class="chat-input-area">
+                    <div id="chat-alert"></div>
+                    <div class="input-row">
+                        <input type="text" class="input text-input" id="message-input" placeholder="Scrivi un messaggio...">
+                        <button class="btn btn-primary" onclick="sendMessage()">Invia</button>
+                    </div>
+                    <div class="voice-controls">
+                        <button class="voice-btn" id="mic-btn" onclick="toggleVoice()" title="Microfono">🎤</button>
+                        <button class="voice-btn" id="speaker-btn" onclick="stopSpeech()" title="Stop audio">🔊</button>
+                    </div>
+                    <div style="text-align: center; font-size: 12px; color: #6b7280; margin-top: 8px;" id="status-text"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Dashboard -->
+    <div id="admin-screen" class="hidden">
+        <div class="container">
+            <div class="dashboard-header">
+                <div class="user-info">
+                    <div>
+                        <div class="user-name" id="admin-name"></div>
+                        <div class="user-email" id="admin-email"></div>
+                    </div>
+                    <button class="btn btn-secondary" onclick="logout()">Esci</button>
+                </div>
+            </div>
+
+            <div class="admin-nav">
+                <button class="nav-btn active" onclick="showAdminTab('overview')">📊 Panoramica</button>
+                <button class="nav-btn" onclick="showAdminTab('users')">👥 Utenti</button>
+                <button class="nav-btn" onclick="showAdminTab('settings')">⚙️ Impostazioni</button>
+            </div>
+
+            <!-- Overview Tab -->
+            <div id="admin-overview-tab">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">Totale Studenti</div>
+                        <div class="stat-value" id="stat-total-users">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Attivi Oggi</div>
+                        <div class="stat-value" id="stat-active-today">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Minuti Oggi</div>
+                        <div class="stat-value" id="stat-minutes-today">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Minuti Questo Mese</div>
+                        <div class="stat-value" id="stat-minutes-month">0</div>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <h3 style="margin-bottom: 16px;">Attività Recente</h3>
+                    <table class="table" id="recent-activity-table">
+                        <thead>
+                            <tr>
+                                <th>Studente</th>
+                                <th>Email</th>
+                                <th>Minuti Oggi</th>
+                                <th>Messaggi</th>
+                                <th>Limite</th>
+                                <th>Stato</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recent-activity-body"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Users Tab -->
+            <div id="admin-users-tab" class="hidden">
+                <div class="table-container">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                        <h3>Gestione Utenti</h3>
+                        <button class="btn btn-primary" onclick="showCreateUserModal()">+ Crea Utente</button>
+                    </div>
+                    <table class="table" id="users-table">
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>Email</th>
+                                <th>Ruolo</th>
+                                <th>Limite Giornaliero</th>
+                                <th>Stato</th>
+                                <th>Azioni</th>
+                            </tr>
+                        </thead>
+                        <tbody id="users-table-body"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Settings Tab -->
+            <div id="admin-settings-tab" class="hidden">
+                <div class="card">
+                    <h3 style="margin-bottom: 20px;">Impostazioni Globali</h3>
+                    <div id="settings-alert"></div>
+                    <form id="settings-form">
+                        <div class="form-group">
+                            <label class="label">Minuti Giornalieri Default (per nuovi utenti)</label>
+                            <input type="number" class="input" id="default-minutes" min="1" max="1440" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="label">Personalità dell'Agente</label>
+                            <textarea class="input" id="system-personality" rows="5" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Salva Impostazioni</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create/Edit User Modal -->
+    <div id="user-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modal-title">Crea Utente</h2>
+                <button class="close-btn" onclick="closeUserModal()">×</button>
+            </div>
+            <div id="modal-alert"></div>
+            <form id="user-form">
+                <input type="hidden" id="user-id">
+                <div class="form-group">
+                    <label class="label">Nome</label>
+                    <input type="text" class="input" id="user-name" required>
+                </div>
+                <div class="form-group">
+                    <label class="label">Email</label>
+                    <input type="email" class="input" id="user-email" required>
+                </div>
+                <div class="form-group" id="password-group">
+                    <label class="label">Password</label>
+                    <input type="password" class="input" id="user-password" minlength="6">
+                </div>
+                <div class="form-group">
+                    <label class="label">Ruolo</label>
+                    <select class="input" id="user-role" required>
+                        <option value="student">Studente</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="label">Minuti Giornalieri</label>
+                    <input type="number" class="input" id="user-minutes" min="1" max="1440" required>
+                </div>
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; gap: 8px;">
+                        <input type="checkbox" id="user-active" checked>
+                        <span>Attivo</span>
+                    </label>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Salva</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // CONFIGURAZIONE
+        // ============================================
+        const API_URL = window.location.origin;
+        
+        // State
+        let currentUser = null;
+        let authToken = null;
+        let messages = [];
+        let recognition = null;
+        let synth = window.speechSynthesis;
+        let isListening = false;
+        let isSpeaking = false;
+
+        // ============================================
+        // INIZIALIZZAZIONE
+        // ============================================
+        function init() {
+            // Check if already logged in
+            authToken = localStorage.getItem('authToken');
+            if (authToken) {
+                fetchCurrentUser();
+            } else {
+                showScreen('auth');
+            }
+
+            // Setup event listeners
+            document.getElementById('login-form').addEventListener('submit', handleLogin);
+            document.getElementById('register-form').addEventListener('submit', handleRegister);
+            document.getElementById('message-input').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') sendMessage();
+            });
+            document.getElementById('settings-form').addEventListener('submit', handleSettingsSave);
+            document.getElementById('user-form').addEventListener('submit', handleUserSave);
+
+            // Init speech recognition
+            initSpeechRecognition();
+        }
+
+        // ============================================
+        // AUTH FUNCTIONS
+        // ============================================
+        async function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+
+            try {
+                const response = await fetch(`${API_URL}/api/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    showAuthAlert(data.error, 'error');
+                    return;
+                }
+
+                authToken = data.token;
+                localStorage.setItem('authToken', authToken);
+                currentUser = data.user;
+                
+                showDashboard();
+            } catch (err) {
+                showAuthAlert('Errore di connessione', 'error');
+            }
+        }
+
+        async function handleRegister(e) {
+            e.preventDefault();
+            const name = document.getElementById('register-name').value;
+            const email = document.getElementById('register-email').value;
+            const password = document.getElementById('register-password').value;
+
+            try {
+                const response = await fetch(`${API_URL}/api/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, password })
+                });
+
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    showAuthAlert(data.error, 'error');
+                    return;
+                }
+
+                authToken = data.token;
+                localStorage.setItem('authToken', authToken);
+                currentUser = data.user;
+                
+                showDashboard();
+            } catch (err) {
+                showAuthAlert('Errore di connessione', 'error');
+            }
+        }
+
+        async function fetchCurrentUser() {
+            try {
+                const response = await fetch(`${API_URL}/api/auth/me`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                if (!response.ok) {
+                    logout();
+                    return;
+                }
+
+                currentUser = await response.json();
+                showDashboard();
+            } catch (err) {
+                logout();
+            }
+        }
+
+        function logout() {
+            authToken = null;
+            currentUser = null;
+            localStorage.removeItem('authToken');
+            messages = [];
+            showScreen('auth');
+        }
+
+        function showDashboard() {
+            if (!currentUser) return;
+
+            if (currentUser.role === 'student') {
+                showStudentDashboard();
+            } else {
+                showAdminDashboard();
+            }
+        }
+
+        // ============================================
+        // STUDENT DASHBOARD
+        // ============================================
+        async function showStudentDashboard() {
+            showScreen('student');
+            document.getElementById('student-name').textContent = currentUser.name;
+            document.getElementById('student-email').textContent = currentUser.email;
+            
+            await loadUsageStats();
+            setInterval(loadUsageStats, 30000); // Update every 30 seconds
+        }
+
+        async function loadUsageStats() {
+            try {
+                const response = await fetch(`${API_URL}/api/usage/me`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                if (!response.ok) return;
+
+                const data = await response.json();
+                document.getElementById('minutes-today').textContent = Math.round(data.today.minutes_used * 10) / 10;
+                document.getElementById('minutes-month').textContent = Math.round(data.monthly_total * 10) / 10;
+                document.getElementById('messages-today').textContent = data.today.messages_count;
+                document.getElementById('daily-limit').textContent = data.daily_limit;
+
+                // Show warning if quota is low
+                if (data.remaining_today < 5 && data.remaining_today > 0) {
+                    showChatAlert(`⚠️ Ti rimangono solo ${Math.round(data.remaining_today)} minuti oggi!`, 'info');
+                } else if (data.remaining_today <= 0) {
+                    showChatAlert('❌ Quota giornaliera esaurita. Torna domani!', 'error');
+                }
+            } catch (err) {
+                console.error('Error loading stats:', err);
+            }
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('message-input');
+            const text = input.value.trim();
+            if (!text) return;
+
+            input.value = '';
+            addMessage('user', text);
+
+            try {
+                const response = await fetch(`${API_URL}/api/chat`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({
+                        messages: messages.map(m => ({ role: m.role, content: m.content }))
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    if (response.status === 429) {
+                        showChatAlert(data.error, 'error');
+                        return;
+                    }
+                    throw new Error(data.error);
+                }
+
+                addMessage('assistant', data.content[0].text);
+                
+                // Update usage display
+                if (data.usage_info) {
+                    document.getElementById('minutes-today').textContent = 
+                        Math.round(data.usage_info.total_used_today * 10) / 10;
+                }
+
+                // Auto-speak if enabled
+                speak(data.content[0].text);
+
+            } catch (err) {
+                showChatAlert('Errore: ' + err.message, 'error');
+            }
+        }
+
+        function addMessage(role, content) {
+            messages.push({ role, content });
+            renderMessages();
+        }
+
+        function renderMessages() {
+            const container = document.getElementById('messages');
+            if (messages.length === 0) {
+                container.innerHTML = `<div class="empty-chat">
+                    <div style="font-size: 48px; margin-bottom: 16px;">🎤</div>
+                    <p>Inizia a parlare o scrivi un messaggio</p>
+                </div>`;
+                return;
+            }
+
+            container.innerHTML = messages.map(m => `
+                <div class="message ${m.role}">
+                    <div class="message-bubble">${escapeHtml(m.content)}</div>
+                </div>
+            `).join('');
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function clearChat() {
+            if (confirm('Vuoi cancellare la conversazione?')) {
+                messages = [];
+                renderMessages();
+            }
+        }
+
+        // ============================================
+        // VOICE FUNCTIONS
+        // ============================================
+        function initSpeechRecognition() {
+            if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                recognition = new SpeechRecognition();
+                recognition.continuous = false;
+                recognition.interimResults = false;
+                recognition.lang = 'it-IT';
+
+                recognition.onresult = (event) => {
+                    const text = event.results[0][0].transcript;
+                    document.getElementById('message-input').value = text;
+                    sendMessage();
+                };
+
+                recognition.onerror = () => {
+                    stopListening();
+                };
+
+                recognition.onend = () => {
+                    stopListening();
+                };
+            }
+        }
+
+        function toggleVoice() {
+            if (!recognition) {
+                showChatAlert('Riconoscimento vocale non supportato. Usa Chrome o Edge.', 'error');
+                return;
+            }
+
+            if (isListening) {
+                recognition.stop();
+            } else {
+                recognition.start();
+                isListening = true;
+                document.getElementById('mic-btn').classList.add('active');
+                document.getElementById('status-text').textContent = '🎤 Ascolto...';
+            }
+        }
+
+        function stopListening() {
+            isListening = false;
+            document.getElementById('mic-btn').classList.remove('active');
+            document.getElementById('status-text').textContent = '';
+        }
+
+        function speak(text) {
+            synth.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'it-IT';
+            utterance.rate = 1;
+            utterance.pitch = 1;
+
+            utterance.onstart = () => {
+                isSpeaking = true;
+                document.getElementById('speaker-btn').classList.add('active');
+                document.getElementById('status-text').textContent = '🔊 Sto parlando...';
+            };
+
+            utterance.onend = () => {
+                isSpeaking = false;
+                document.getElementById('speaker-btn').classList.remove('active');
+                document.getElementById('status-text').textContent = '';
+            };
+
+            synth.speak(utterance);
+        }
+
+        function stopSpeech() {
+            synth.cancel();
+            isSpeaking = false;
+            document.getElementById('speaker-btn').classList.remove('active');
+            document.getElementById('status-text').textContent = '';
+        }
+
+        // ============================================
+        // ADMIN DASHBOARD
+        // ============================================
+        async function showAdminDashboard() {
+            showScreen('admin');
+            document.getElementById('admin-name').textContent = currentUser.name;
+            document.getElementById('admin-email').textContent = currentUser.email;
+            
+            await loadAdminStats();
+            await loadAdminUsers();
+            await loadSettings();
+        }
+
+        async function loadAdminStats() {
+            try {
+                const response = await fetch(`${API_URL}/api/admin/stats`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                if (!response.ok) return;
+
+                const data = await response.json();
+                document.getElementById('stat-total-users').textContent = data.total_users;
+                document.getElementById('stat-active-today').textContent = data.active_today;
+                document.getElementById('stat-minutes-today').textContent = Math.round(data.minutes_today);
+                document.getElementById('stat-minutes-month').textContent = Math.round(data.minutes_month);
+            } catch (err) {
+                console.error('Error loading stats:', err);
+            }
+        }
+
+        async function loadAdminUsers() {
+            try {
+                const response = await fetch(`${API_URL}/api/admin/users`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                if (!response.ok) return;
+
+                const users = await response.json();
+                
+                // Render recent activity
+                const activityBody = document.getElementById('recent-activity-body');
+                const students = users.filter(u => u.role === 'student');
+                activityBody.innerHTML = students.slice(0, 10).map(u => `
+                    <tr>
+                        <td>${escapeHtml(u.name)}</td>
+                        <td>${escapeHtml(u.email)}</td>
+                        <td>${Math.round(u.used_today * 10) / 10}</td>
+                        <td>${u.messages_today}</td>
+                        <td>${u.daily_minutes}</td>
+                        <td><span class="badge ${u.is_active ? 'badge-active' : 'badge-inactive'}">
+                            ${u.is_active ? 'Attivo' : 'Disattivo'}
+                        </span></td>
+                    </tr>
+                `).join('');
+
+                // Render users table
+                const usersBody = document.getElementById('users-table-body');
+                usersBody.innerHTML = users.map(u => `
+                    <tr>
+                        <td>${escapeHtml(u.name)}</td>
+                        <td>${escapeHtml(u.email)}</td>
+                        <td><span class="badge ${u.role === 'student' ? 'badge-student' : 'badge-admin'}">
+                            ${u.role === 'super_admin' ? 'Super Admin' : u.role === 'admin' ? 'Admin' : 'Studente'}
+                        </span></td>
+                        <td>${u.daily_minutes} min</td>
+                        <td><span class="badge ${u.is_active ? 'badge-active' : 'badge-inactive'}">
+                            ${u.is_active ? 'Attivo' : 'Disattivo'}
+                        </span></td>
+                        <td>
+                            <button class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;" 
+                                onclick="editUser(${u.id})">Modifica</button>
+                            ${u.role !== 'super_admin' && currentUser.role === 'super_admin' ? 
+                                `<button class="btn btn-danger" style="padding: 6px 12px; font-size: 12px;" 
+                                    onclick="deleteUser(${u.id}, '${escapeHtml(u.name)}')">Elimina</button>` : ''}
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (err) {
+                console.error('Error loading users:', err);
+            }
+        }
+
+        async function loadSettings() {
+            try {
+                const response = await fetch(`${API_URL}/api/admin/settings`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                if (!response.ok) return;
+
+                const settings = await response.json();
+                document.getElementById('default-minutes').value = settings.default_daily_minutes || 60;
+                document.getElementById('system-personality').value = settings.system_personality || '';
+            } catch (err) {
+                console.error('Error loading settings:', err);
+            }
+        }
+
+        async function handleSettingsSave(e) {
+            e.preventDefault();
+            
+            const defaultMinutes = parseInt(document.getElementById('default-minutes').value);
+            const systemPersonality = document.getElementById('system-personality').value;
+
+            try {
+                const response = await fetch(`${API_URL}/api/admin/settings`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({
+                        default_daily_minutes: defaultMinutes,
+                        system_personality: systemPersonality
+                    })
+                });
+
+                if (!response.ok) throw new Error('Errore salvataggio');
+
+                showSettingsAlert('✅ Impostazioni salvate con successo!', 'success');
+            } catch (err) {
+                showSettingsAlert('❌ ' + err.message, 'error');
+            }
+        }
+
+        function showAdminTab(tab) {
+            // Update nav buttons
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // Show/hide tabs
+            document.getElementById('admin-overview-tab').classList.add('hidden');
+            document.getElementById('admin-users-tab').classList.add('hidden');
+            document.getElementById('admin-settings-tab').classList.add('hidden');
+            document.getElementById(`admin-${tab}-tab`).classList.remove('hidden');
+
+            if (tab === 'overview') loadAdminStats();
+            if (tab === 'users') loadAdminUsers();
+            if (tab === 'settings') loadSettings();
+        }
+
+        function showCreateUserModal() {
+            document.getElementById('modal-title').textContent = 'Crea Nuovo Utente';
+            document.getElementById('user-id').value = '';
+            document.getElementById('user-name').value = '';
+            document.getElementById('user-email').value = '';
+            document.getElementById('user-password').value = '';
+            document.getElementById('user-role').value = 'student';
+            document.getElementById('user-minutes').value = 60;
+            document.getElementById('user-active').checked = true;
+            document.getElementById('password-group').classList.remove('hidden');
+            document.getElementById('user-password').required = true;
+            document.getElementById('user-modal').classList.add('show');
+        }
+
+        async function editUser(userId) {
+            try {
+                const response = await fetch(`${API_URL}/api/admin/users/${userId}`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                if (!response.ok) throw new Error('Errore caricamento utente');
+
+                const data = await response.json();
+                const user = data.user;
+
+                document.getElementById('modal-title').textContent = 'Modifica Utente';
+                document.getElementById('user-id').value = user.id;
+                document.getElementById('user-name').value = user.name;
+                document.getElementById('user-email').value = user.email;
+                document.getElementById('user-password').value = '';
+                document.getElementById('user-role').value = user.role;
+                document.getElementById('user-minutes').value = user.daily_minutes;
+                document.getElementById('user-active').checked = user.is_active === 1;
+                document.getElementById('password-group').classList.add('hidden');
+                document.getElementById('user-password').required = false;
+                document.getElementById('user-modal').classList.add('show');
+            } catch (err) {
+                alert(err.message);
+            }
+        }
+
+        async function handleUserSave(e) {
+            e.preventDefault();
+
+            const userId = document.getElementById('user-id').value;
+            const name = document.getElementById('user-name').value;
+            const email = document.getElementById('user-email').value;
+            const password = document.getElementById('user-password').value;
+            const role = document.getElementById('user-role').value;
+            const dailyMinutes = parseInt(document.getElementById('user-minutes').value);
+            const isActive = document.getElementById('user-active').checked;
+
+            try {
+                const url = userId ? `${API_URL}/api/admin/users/${userId}` : `${API_URL}/api/admin/users`;
+                const method = userId ? 'PUT' : 'POST';
+                const body = userId ? 
+                    { name, daily_minutes: dailyMinutes, is_active: isActive ? 1 : 0, role } :
+                    { name, email, password, role, daily_minutes: dailyMinutes };
+
+                const response = await fetch(url, {
+                    method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify(body)
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    showModalAlert(data.error, 'error');
+                    return;
+                }
+
+                closeUserModal();
+                loadAdminUsers();
+                alert(userId ? 'Utente aggiornato!' : 'Utente creato!');
+            } catch (err) {
+                showModalAlert('Errore: ' + err.message, 'error');
+            }
+        }
+
+        async function deleteUser(userId, userName) {
+            if (!confirm(`Vuoi davvero eliminare l'utente ${userName}?`)) return;
+
+            try {
+                const response = await fetch(`${API_URL}/api/admin/users/${userId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                if (!response.ok) throw new Error('Errore eliminazione');
+
+                alert('Utente eliminato!');
+                loadAdminUsers();
+            } catch (err) {
+                alert(err.message);
+            }
+        }
+
+        function closeUserModal() {
+            document.getElementById('user-modal').classList.remove('show');
+            document.getElementById('modal-alert').innerHTML = '';
+        }
+
+        // ============================================
+        // UI HELPERS
+        // ============================================
+        function showScreen(screen) {
+            document.getElementById('auth-screen').classList.add('hidden');
+            document.getElementById('student-screen').classList.add('hidden');
+            document.getElementById('admin-screen').classList.add('hidden');
+            document.getElementById(`${screen}-screen`).classList.remove('hidden');
+        }
+
+        function showLogin() {
+            document.getElementById('login-form').classList.remove('hidden');
+            document.getElementById('register-form').classList.add('hidden');
+            document.getElementById('auth-alert').innerHTML = '';
+        }
+
+        function showRegister() {
+            document.getElementById('login-form').classList.add('hidden');
+            document.getElementById('register-form').classList.remove('hidden');
+            document.getElementById('auth-alert').innerHTML = '';
+        }
+
+        function showAuthAlert(message, type) {
+            document.getElementById('auth-alert').innerHTML = 
+                `<div class="alert alert-${type}">${message}</div>`;
+        }
+
+        function showChatAlert(message, type) {
+            document.getElementById('chat-alert').innerHTML = 
+                `<div class="alert alert-${type}">${message}</div>`;
+            setTimeout(() => {
+                document.getElementById('chat-alert').innerHTML = '';
+            }, 5000);
+        }
+
+        function showSettingsAlert(message, type) {
+            document.getElementById('settings-alert').innerHTML = 
+                `<div class="alert alert-${type}">${message}</div>`;
+            setTimeout(() => {
+                document.getElementById('settings-alert').innerHTML = '';
+            }, 3000);
+        }
+
+        function showModalAlert(message, type) {
+            document.getElementById('modal-alert').innerHTML = 
+                `<div class="alert alert-${type}">${message}</div>`;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // ============================================
+        // INIT
+        // ============================================
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>
